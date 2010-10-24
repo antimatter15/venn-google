@@ -34,11 +34,17 @@ Type an incomplete google query that you would expect <b>Google Suggest to autoc
 <p>
 Please follow <a href="http://twitter.com/antimatter15">@antimatter15</a> on twitter. At time of writing I'm fifteen, though I don't find that much of an accomplishment. My site is at <a href="http://antimatter15.com">antimatter15.com</a> and hopefully you'll find some other cool stuff there too. Recently I've created a system for <a href="http://antimatter15.github.com/weppy/demo.html">viewing WebP images</a> in modern browsers, a webapp that resembles the <a href="http://antimatter15.com/ajaxanimator/wave/">Flash IDE</a> and *many* more.
 </p>
-<h2>Technical</h2>
-It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
+<h2>More</h2>
+<p>
+<s>It uses Yahoo's YQL API to pull XML Google Suggest data.</s> The google suggest data is now acquired directly from Google with JSONP. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
+A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">Google Sugest Venn Diagram Generator</a>, inspired by the same tweet. 
+</p>
 <h2>Examples</h2>
 <a href="#venn+diagrams#google+suggest">Venn Diagrams + Google Suggest</a>
 <a href="#why+are+christians+so#why+are+muslims+so#why+are+jews+so#why+are+buddhists">The Original</a>
+<a href="#stephen+colbert+is#sarah+palin+is">Stephen Colbert + Sarah Palin</a>
+<a href="#obama+is#sarah+palin+is#bush+is">Bush, Palin, Obama</a>
+
 </div>
 
 </div>
@@ -46,7 +52,9 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
 <div id="drawing"></div>
 <script>
 
+
   var examples = ['Obama is...','Google is...','Scientology is...','Why are christians so...','Sarah Palin is...','Why are atheists so...', 'Why are jews so...','Why are muslims so...', 'Why are buddhists so...', 'The World is...', 'Humanity is...', 'Kittens are...', 'Puppies are...'];
+  
   function update_placeholder(){
     document.getElementsByName('query')[0].placeholder = examples[~~(examples.length*Math.random())];
   }
@@ -168,7 +176,30 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
 
 	var groups = [];
 	var roots = [];
-	var yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fgoogle.com%2Fcomplete%2Fsearch%3Foutput%3Dtoolbar%26q%3D{text}'&format=json&diagnostics=true&callback={cbfunc}";
+	//var yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fgoogle.com%2Fcomplete%2Fsearch%3Foutput%3Dtoolbar%26q%3D{text}'&format=json&diagnostics=true&callback={cbfunc}";
+	
+	 google={ac:{h:function(arg){
+    getSuggestion[arg[0]](arg);
+  }}};
+  
+  function getSuggestion(root, callback){
+    var s = document.createElement("script");
+    getSuggestion[root] = function(res){
+      try{
+        var nam = res[0], items = res[1].map(function(x){return x[0]});
+        callback(items.map(function(x){
+          return x.replace(/[^\w\s]/g,'')
+        }))
+      }catch(err){
+      
+        alert('Error handling query "'+root+'"');
+      }
+			if(s.parentNode) s.parentNode.removeChild(s);
+    }
+    s.src = 'http://google.com/complete/search?t=toolbar&q='+encodeURIComponent(root);
+    document.body.appendChild(s);
+  }
+	/*
 	function getSuggestion(root, callback){
 		var cbfunc = 'x'+Math.random().toString(36).substr(3);
 		var s = document.createElement("script");
@@ -185,7 +216,7 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
 		}
 		s.src = yql.replace('{text}', encodeURIComponent(encodeURIComponent(root))).replace('{cbfunc}', 'getSuggestion.'+cbfunc);
 		document.body.appendChild(s);
-	}
+	}*/
 	
 	function getProperties(root, callback){
 	  root = root.replace(/^\s+|\s+$/g, '')+' '; //trim and add trailing space
