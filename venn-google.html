@@ -1,0 +1,464 @@
+<!doctype html>
+<html>
+<!-- BEWARE OF THIS UGLY HTML THAT FOLLOWS. RUN FOR YOU LIFE. RUNNNN -->
+<head>
+<style>
+  * {
+    font-family: 'sans-serif', arial, helvetica;
+    font-size: 12px;
+  }
+  
+</style>
+<title>Google Suggest Venn Diagrams</title>
+<meta charset='utf8'>
+</head>
+<body>
+<form onsubmit="add(this.query.value);return false">
+<input type="text" name="query" style="width: 570px;font-size: large">
+<input type="submit" value="Add" style="font-size:large">
+<input type="button" value="Reset" style="font-size:large" onclick="doreset()">
+</form>
+<div style="min-width: 930px;position:absolute;width:100%;padding:0;top:0;left:0;">
+<div style="position:absolute;top:60px;right:20px;z-index:42;background-color:white;border-radius:20px;-webkit-border-radius:20px;-moz-border-radius:20px;padding:10px;border:1px solid gray;width:300px">
+<h1>Google Suggest Venn Diagrams</h1>
+<p>
+Inspired by <a href="http://twitter.com/#!/nslater/status/28032249186">this tweet</a>, I made this web app for creating venn diagrams out of google requests. To the right is the resulting diagram of muslims, christians, atheists and buddhists, which is slightly different from the original, but who cares?
+</p>
+
+<h2>How to use</h2>
+<p>
+Type an incomplete google query that you would expect <b>Google Suggest to autocomplete</b>, such as <b>"Why are christians so..."</b> (the trailing elipses are optional). 
+<b>Press enter</b> to add it to the chart. <b>Repeat</b> with the same type of question to add new items. <br> Note that you can only have venn digrams of up to 3-circles as the higher dimensional renditions are harder to implement (and understand) and also uglier. However, you may add an unlimited number of circles that share no items with other circles.
+</p>
+<h2>About</h2>
+<p>
+Please follow <a href="http://twitter.com/antimatter15">@antimatter15</a> on twitter.
+</p>
+<h2>Technical</h2>
+It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
+</div>
+</div>
+<div id="warning" style="background-color: orange; font-size: xx-large;display:none">Your browser isn't supported!</div>
+<div id="drawing"></div>
+<script>
+
+  var examples = ['Obama is...','Google is...','Scientology is...','Why are christians so...','Sarah Palin is...','Why are atheists so...', 'Why are jews so...','Why are muslims so...', 'Why are buddhists so...', 'The World is...', 'Humanity is...', 'Kittens are...', 'Puppies are...'];
+  function update_placeholder(){
+    document.getElementsByName('query')[0].placeholder = examples[~~(examples.length*Math.random())];
+  }
+  update_placeholder();
+  setInterval(update_placeholder,2500);
+
+  function doreset(){
+    location.hash = '';
+    groups = [];
+    roots = [];
+    document.getElementById('drawing').innerHTML = ''
+  }
+
+  var d = document.body.style;
+  if((d.WebkitBorderRadus !== undefined || d.borderRadius !== undefined || d.MozBorderRadius !== undefined)/* && [].map && [].filter*/){
+    //yay
+  }else{
+    document.getElementById('warning').style.display = '';
+  }
+
+
+  function add(root,cb){
+    root = root.replace(/[^\w\s]/g,'');
+    if(roots.indexOf(root) == -1){
+      addRoot(root, function(){
+        if(!cb) drawVenn(groups); else cb();
+        location.hash+='#'+encodeURIComponent(root).replace(/%20/g,'+');
+      });
+    }
+  }
+  //stolen from mozilla
+  if (!Array.prototype.map)
+  {
+    Array.prototype.map = function(fun /*, thisp */)
+    {
+      //DO NOT USE STRICT. HA HA.
+      if (this === void 0 || this === null)
+        throw new TypeError();
+      var t = Object(this);
+      var len = t.length >>> 0;
+      if (typeof fun !== "function")
+        throw new TypeError();
+      var res = new Array(len);
+      var thisp = arguments[1];
+      for (var i = 0; i < len; i++)
+      {
+        if (i in t)
+          res[i] = fun.call(thisp, t[i], i, t);
+      }
+      return res;
+    };
+  }
+  if (!Array.prototype.filter)  
+  {  
+    Array.prototype.filter = function(fun /*, thisp */)  
+    {  
+      //seriously what's with mozilla's strictness?
+      if (this === void 0 || this === null)  
+        throw new TypeError();  
+    
+      var t = Object(this);  
+      var len = t.length >>> 0;  
+      if (typeof fun !== "function")  
+        throw new TypeError();  
+    
+      var res = [];  
+      var thisp = arguments[1];  
+      for (var i = 0; i < len; i++)  
+      {  
+        if (i in t)  
+        {  
+          var val = t[i]; // in case fun mutates this  
+          if (fun.call(thisp, val, i, t))  
+            res.push(val);  
+        }  
+      }  
+    
+      return res;  
+    };  
+  }  
+  if (!Array.prototype.indexOf)  
+  {  
+    Array.prototype.indexOf = function(searchElement /*, fromIndex */)  
+    {  
+      //i love stealing code from mozilla
+      if (this === void 0 || this === null)  
+        throw new TypeError();  
+    
+      var t = Object(this);  
+      var len = t.length >>> 0;  
+      if (len === 0)  
+        return -1;  
+    
+      var n = 0;  
+      if (arguments.length > 0)  
+      {  
+        n = Number(arguments[1]);  
+        if (n !== n)  
+          n = 0;  
+        else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0))  
+          n = (n > 0 || -1) * Math.floor(Math.abs(n));  
+      }  
+    
+      if (n >= len)  
+        return -1;  
+    
+      var k = n >= 0  
+            ? n  
+            : Math.max(len - Math.abs(n), 0);  
+    
+      for (; k < len; k++)  
+      {  
+        if (k in t && t[k] === searchElement)  
+          return k;  
+      }  
+      return -1;  
+    };  
+  }  
+
+	var groups = [];
+	var roots = [];
+	var yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fgoogle.com%2Fcomplete%2Fsearch%3Foutput%3Dtoolbar%26q%3D{text}'&format=json&diagnostics=true&callback={cbfunc}";
+	function getSuggestion(root, callback){
+		var cbfunc = 'x'+Math.random().toString(36).substr(3);
+		var s = document.createElement("script");
+		getSuggestion[cbfunc] = function(res){
+		  try{
+			  callback(res.query.results.toplevel.CompleteSuggestion.map(function(x){
+			    //console.log(x.suggestion.data);
+			    return x.suggestion.data.replace(/[^\w\s]/g,'')
+		    }));
+		  }catch(err){
+		    alert('Error handling query "'+root+'"');
+		  }
+			if(s.parentNode) s.parentNode.removeChild(s);
+		}
+		s.src = yql.replace('{text}', encodeURIComponent(encodeURIComponent(root))).replace('{cbfunc}', 'getSuggestion.'+cbfunc);
+		document.body.appendChild(s);
+	}
+	
+	function getProperties(root, callback){
+	  root = root.replace(/^\s+|\s+$/g, '')+' '; //trim and add trailing space
+		getSuggestion(root, function(x){
+			callback(x.map(function(k){
+				return k.toLowerCase().replace(root.replace(/^\s+|\s+$/g, '').toLowerCase(), '').replace(/^\s+|\s+$/g, '').replace(/^[^a] /,'');
+			}).filter(function(x){
+					return x != '' && x.length > 1
+				}))
+		})
+	}
+	
+	function addRoot(root,cb){
+		//remember to scrub out trailing elipses
+		getProperties(root, function(props){
+			roots.push(root)
+			groups.push(props);
+			cb();
+			//"why are pokemon"
+		})
+	}
+	
+	//lightweight suboptimal text diff algorithm.
+	//stolen from awesomeness. hacked for this.
+	function diff(a, b){
+		a = a.split(' ');
+		b = b.split(' ');
+		var al = a.length, 
+				bl = b.length, 
+				shortest = Math.min(bl, al), i = 0, j = 0;
+		while(i < shortest && a[i] == b[i]) i++;
+		while(j < shortest - i && a[al-j] == b[bl-j]) j++;
+	  return b.slice(i,bl-j+1).join(' ');
+	}
+	
+	
+	//quasi-parallelism simulator
+	function race(n,cb){
+		return function(){
+			if(!--n) cb();
+		}
+	}
+	
+	
+	function check_url(){
+  	var uroots = location.hash.split('#').map(function(e){return unescape(e).replace(/\+/g,' ')}).filter(function(e){return e});
+  	
+	  if(uroots.length && uroots.join(',') != roots.join(',')){
+	    doreset();
+	    var racer = race(uroots.length,function(){
+  		  drawVenn(groups);
+		  });
+		  for(var i = 0; i < uroots.length; i++){
+		    add(uroots[i], racer); //so much for order. but speed is more important
+		  }
+		  return true
+    }else{
+      //whatevah
+      return false
+    }
+	}
+	setInterval(check_url,500);
+	if(!check_url()){
+	  groups = [["stupid","judgemental","mean","hateful","ignorant","intolerant","dumb","fat","annoying","gullible"],["violent","easily offended","angry","stupid","crazy","sensitive","intolerant","hated","backward","barbaric"],["stupid","angry","awesome","intolerant","smart","mean","hateful","arrogant","annoying","rude"],["happy"]];
+	  roots = ["why are christians so", "why are muslims so", "why are atheists so", "why are buddhists so"];
+
+    drawVenn(groups);
+	  document.getElementById("drawing").innerHTML += '<h1>EXAMPLE</h1>'
+    
+    groups = [];
+    roots = [];
+	}
+	//*
+	//var racer = race(3,function(){
+	//	drawVenn(groups);
+		//empty out later to accept user input.
+	//})
+	//addRoot("why are christians so",racer);
+	//addRoot("why are buddhists so",racer);
+	//addRoot("why are mormons so",racer);
+	//addRoot("why are buddhists so",racer);
+	//*/
+	/*function findIntersection(groups){
+		var intersection = [];
+		for(var i = groups.length; i--;){ //iterate through each group
+			for(var k = groups[i].length; k--;){
+				groups[i][k] //loop through each word
+				var inAll = true;
+				for(var j = groups.length; j--;){
+					if(groups[j].indexOf(groups[i][k]) == -1){
+						inAll = false;
+					}
+				}
+				if(inAll && intersection.indexOf(groups[i][k]) == -1){
+					intersection.push(groups[i][k]);
+				}
+			}
+		}
+		return intersection
+	}*/
+	
+	function intersect(g1, g2){
+		//OMG I AM TOTALLY CHUCK AND THE INTERSECT
+		//ITS ALL PART OF PROJECT ORION I DONT ACTUALLY FOLLOW THE SERIES
+		//BUT I SAW A FEW EPISODES AND THATS WHAT THE WORD INTERSECT
+		//MAKES ME THINK OF.
+		//AND OF COURSE THAT MAKES ME THINK OF AZA RASKIN'S AWESOME
+		//PRESENTATION ON HACKING MEMORIES WHICH, IN MY MIND IS ASSOCIATED
+		//WITH THE MOVIE INCEPTION.
+
+		var exclusive1 = [],
+				exclusive2 = [],
+				mutual = [];
+
+		for(var i = g1.length; i--;){
+			//g1[i] is a random text thing
+			if(g2.indexOf(g1[i]) == -1){
+				//g1[i] is not in g2
+				exclusive1.push(g1[i])
+			}else{
+				//g1[i] is in g2
+				mutual.push(g1[i])
+			}
+		}
+
+		for(var i = g2.length; i--;){
+			//g1[i] is a random text thing
+			if(g1.indexOf(g2[i]) == -1){
+				//g1[i] is not in g2
+				exclusive2.push(g2[i])
+			} //otherwise is not interesting
+		}
+		return [exclusive1, mutual, exclusive2]
+	}
+	
+	
+	function groupIsAlone(group){
+		for(var i = group.length; i--;){
+			if(!propertyIsAlone(group[i])) return false;
+		}
+		return true;
+	}
+	function propertyIsAlone(prop){
+		var num = 0;
+		for(var i = groups.length; i--;){
+			if(groups[i].indexOf(prop) != -1){
+				num++
+			}
+		}
+		return num == 1;
+	}
+	function drawVenn(groups){
+	  document.getElementById("drawing").innerHTML = '';
+		var names = [];
+		if(roots.length > 1){
+		  for(var i = roots.length; i--;){
+			  names.push(diff(roots[i?(i-1):1].toLowerCase(), roots[i].toLowerCase()))
+		  }
+		  names = names.reverse();
+		}else{
+		  names = roots.slice(0);
+		}
+		var alone = [];
+		var together = [];
+		for(var i = groups.length; i--;){
+			if(groupIsAlone(groups[i])){
+				alone.push(i)
+			}else{
+				together.push(i)
+			}
+		}
+		
+		//console.log('drawing venns',alone,together)
+		if(together.length > 3) alert('All the 4-Venn diagrams are ugly');
+		
+		together = together.slice(-3);
+		
+		//even uglier than this code!
+		
+		
+		if(together.length == 0){
+			//not much to draw is there?
+		}else if(together.length == 1){
+			//theoretically. it's impossible to have it equal 1.
+			//since one thing together would be equivalent to 
+			//one thing alone. right?
+		}else if(together.length == 2){
+			drawCircle(names[together[0]],10,50,400);
+			var is = intersect(groups[together[0]], groups[together[1]]);
+
+			
+			drawText(70,120,is[0].join('<br>'))
+			drawText(250,120,is[1].join('<br>'))
+			drawCircle(names[together[1]],180,50,400)
+			drawText(420,120,is[2].join('<br>'))
+		}else{ //3+, because for 4+ only draw first 3
+ 			drawCircle(names[together[0]],10,50,400);
+
+			var am = intersect(groups[together[0]], groups[together[1]]);
+			var center = intersect(am[1], groups[together[2]])[1];
+			var ac = intersect(groups[together[0]], groups[together[2]]);
+			var ao = intersect(ac[0], am[0])[1];
+			var amo = intersect(am[1], center)[0];
+			var mc = intersect(groups[together[1]], groups[together[2]]);
+			var mo = intersect(am[2], mc[0])[1];
+			var co = intersect(ac[2], mc[2])[1];
+			
+      var mco = intersect(mc[1], center)[0];
+			
+			var aco = intersect(ac[1], center)[0];
+			
+			//var it = intersect(groups[together[1]], groups[together[2]]);
+			//var iu = intersect(groups[together[0]], groups[together[2]]);
+			//intersect
+			drawText(90,120,ao.join('<br>')) //1-only
+			drawText(250,120,amo.join('<br>')) //1 -and- 2 only
+			drawText(420,120,mo.join('<br>'))
+			drawCircle(names[together[1]],180,50,400)
+			drawText(220,270,center.join('<br>'))
+			drawText(120,310,aco.join('<br>'))
+			drawText(400,310,mco.join('<br>'))
+			drawCircle(names[together[2]],90,220,400)
+			drawText(170,470,co.join('<br>'))
+		}
+		var r = 50;
+		if(together.length >= 2) r += 410;
+		if(together.length >= 3) r+= 210;
+		for(var i = alone.length; i--;){
+			if(((alone.length-i) % 2)){
+				drawCircle(names[alone[i]], 10, r, 200)
+				drawText(10+20,r+50,groups[alone[i]].join('<br>'))
+			}else{
+				drawCircle(names[alone[i]], 400, r, 200);
+				drawText(400+20,r+50,groups[alone[i]].join('<br>'))
+				r+= 210;
+			}
+		}
+	}
+	
+	
+	function drawCircle(t,x,y,w){
+		var div = document.createElement('div');
+		div.style.border = '1px solid black';
+		div.style.textAlign = "center";
+		div.innerHTML = "<h2 style='color:darkblue'>"+t+"</h2>";
+		//
+		var r = Math.floor(w/2) + 'px';
+		//
+		//t.style.textAlign = 'center';
+		div.style.opacity = '0.5';
+		//random light-ish color
+		div.style.backgroundColor = '#'+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2);
+		div.style.borderRadius = r;
+		div.style.WebkitBorderRadius = r;
+		div.style.MozBorderRadius = r;
+		div.style.position = 'absolute';
+		div.style.top = y+'px';
+		div.style.left = x+'px';
+		div.style.width = w+'px';
+		div.style.height = w+'px';
+		
+		//div.appendChild(t)
+		document.getElementById("drawing").appendChild(div);
+		
+		return div
+	}
+	function drawText(x,y,text){
+		var t = document.createElement('div')
+		t.innerHTML = text;
+		t.style.top = y+'px';
+		t.style.zIndex = 2;
+		t.style.position = 'absolute';
+		t.style.left = x+'px';
+		document.getElementById("drawing").appendChild(t)
+	}
+	
+	
+</script>
+</body>
+</html>
