@@ -254,34 +254,7 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
     groups = [];
     roots = [];
 	}
-	//*
-	//var racer = race(3,function(){
-	//	drawVenn(groups);
-		//empty out later to accept user input.
-	//})
-	//addRoot("why are christians so",racer);
-	//addRoot("why are buddhists so",racer);
-	//addRoot("why are mormons so",racer);
-	//addRoot("why are buddhists so",racer);
-	//*/
-	/*function findIntersection(groups){
-		var intersection = [];
-		for(var i = groups.length; i--;){ //iterate through each group
-			for(var k = groups[i].length; k--;){
-				groups[i][k] //loop through each word
-				var inAll = true;
-				for(var j = groups.length; j--;){
-					if(groups[j].indexOf(groups[i][k]) == -1){
-						inAll = false;
-					}
-				}
-				if(inAll && intersection.indexOf(groups[i][k]) == -1){
-					intersection.push(groups[i][k]);
-				}
-			}
-		}
-		return intersection
-	}*/
+
 	
 	function intersect(g1, g2){
 		//OMG I AM TOTALLY CHUCK AND THE INTERSECT
@@ -355,9 +328,7 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
 		}
 		
 		//console.log('drawing venns',alone,together)
-		if(together.length > 3) alert('All the 4-Venn diagrams are ugly');
-		
-		together = together.slice(-3);
+		//if(together.length > 3) alert('All the 4-Venn diagrams are ugly');
 		
 		//even uglier than this code!
 		
