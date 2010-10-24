@@ -227,7 +227,7 @@ It uses Yahoo's YQL API to pull XML Google Suggest data. The Venn-Diagram implem
 	
 	
 	function check_url(){
-  	var uroots = location.hash.split('#').map(function(e){return unescape(e).replace(/\+/g,' ')}).filter(function(e){return e});
+  	var uroots = unescape(location.hash).split('#').map(function(e){return unescape(e).replace(/\+/g,' ')}).filter(function(e){return e});
   	
 	  if(uroots.length && uroots.join(',') != roots.join(',')){
 	    doreset();
