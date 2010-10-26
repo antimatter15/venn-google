@@ -8,52 +8,55 @@
     font-size: 12px;
   }
   
+  #queries a{
+    color: #C93244 !important;
+  }
 </style>
 <title>Google Suggest Venn Diagrams</title>
 <meta charset='utf8'>
 </head>
 <body>
 <form onsubmit="add(this.query.value);return false">
-<input type="text" name="query" style="width: 570px;font-size: large">
+<input type="text" name="query" id="query" style="width: 450px;font-size: large">
 <input type="submit" value="Add" style="font-size:large">
 <input type="button" value="Reset" style="font-size:large" onclick="doreset()">
 </form>
-<div style="min-width: 930px;position:absolute;width:100%;padding:0;top:0;left:0;">
-<div style="position:absolute;top:60px;right:20px;z-index:42;background-color:white;border-radius:20px;-webkit-border-radius:20px;-moz-border-radius:20px;padding:10px;border:1px solid gray;width:300px">
+<div style="min-width: 940px;position:absolute;width:100%;padding:0;top:0;left:0;">
+<div style="position:absolute;top:10px;right:10px;z-index:42;background-color:white;border-radius:20px;-webkit-border-radius:20px;-moz-border-radius:20px;padding:10px;border:1px solid gray;width:300px">
 <h1>Google Suggest Venn Diagrams</h1>
 <p>
-Inspired by <a href="http://twitter.com/#!/nslater/status/28032249186">this tweet</a>, I made this web app for creating venn diagrams out of google requests. To the right is the resulting diagram of muslims, christians, atheists and buddhists, which is slightly different from the original, but who cares?
+This web app creates venn diagrams out of Google Suggest data.
 </p>
-
-<h2>How to use</h2>
+<h2>Usage</h2>
 <p>
-Type an incomplete google query that you would expect <b>Google Suggest to autocomplete</b>, such as <b>"Why are christians so..."</b> (the trailing elipses are optional). 
-<b>Press enter</b> to add it to the chart. <b>Repeat</b> with the same type of question to add new items. <br> Note that you can only have venn digrams of up to 3-circles as the higher dimensional renditions are harder to implement (and understand) and also uglier. However, you may add an unlimited number of circles that share no items with other circles.
+Type something into the text box and press "Add" to create a new circle.
 </p>
 <h2>About</h2>
 <p>
-Please follow <a href="http://twitter.com/antimatter15">@antimatter15</a> on twitter. At time of writing I'm fifteen, though I don't find that much of an accomplishment. My site is at <a href="http://antimatter15.com">antimatter15.com</a> and hopefully you'll find some other cool stuff there too. Recently I've created a system for <a href="http://antimatter15.github.com/weppy/demo.html">viewing WebP images</a> in modern browsers, a webapp that resembles the <a href="http://antimatter15.com/ajaxanimator/wave/">Flash IDE</a> and *many* more.
+This was first released Sunday, October 24th, inspired by <a href="http://twitter.com/#!/nslater/status/28032249186">this tweet</a>. Please follow <a href="http://twitter.com/antimatter15">@antimatter15</a> on twitter. At time of writing I'm fifteen, though I don't find that much of an accomplishment. My site is at <a href="http://antimatter15.com">antimatter15.com</a> and hopefully you'll find some other cool stuff there too. Recently I've created a system for <a href="http://antimatter15.github.com/weppy/demo.html">viewing WebP images</a> in modern browsers, a webapp that resembles the <a href="http://antimatter15.com/ajaxanimator/wave/">Flash IDE</a> and *many* more.
 </p>
-<h2>More</h2>
+<h2>Technical</h2>
 <p>
-<s>It uses Yahoo's YQL API to pull XML Google Suggest data.</s> The google suggest data is now acquired directly from Google with JSONP. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
-A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">Google Sugest Venn Diagram Generator</a>, inspired by the same tweet. 
+The google suggest data is now acquired directly from Google with JSONP. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
 </p>
-<h2>Examples</h2>
-<a href="#venn+diagrams#google+suggest">Venn Diagrams + Google Suggest</a>
-<a href="#why+are+christians+so#why+are+muslims+so#why+are+jews+so#why+are+buddhists">The Original</a>
-<a href="#stephen+colbert+is#sarah+palin+is">Stephen Colbert + Sarah Palin</a>
-<a href="#obama+is#sarah+palin+is#bush+is">Bush, Palin, Obama</a>
-
+<strong>Share</strong> <a href="#tweet" id="tweetlink">Twitter</a> <a href='#fb' id="fbl">Facebook</a>
+<p>
+<span id="sharelink" style="font-family:monospace;word-wrap:break-word">http://goo.gl/6kjP</span>
+</p>
+<div>
+<strong>Edit</strong><em>(Click to remove)</em>
+<ul id="queries">
+</ul>
+</div>
 </div>
 
 </div>
 <div id="warning" style="background-color: orange; font-size: xx-large;display:none">Your browser isn't supported!</div>
 <div id="drawing"></div>
 <script>
+  var shortened_url = 'http://goo.gl/6kjP';
 
-
-  var examples = ['Obama is...','Google is...','Scientology is...','Why are christians so...','Sarah Palin is...','Why are atheists so...', 'Why are jews so...','Why are muslims so...', 'Why are buddhists so...', 'The World is...', 'Humanity is...', 'Kittens are...', 'Puppies are...'];
+  var examples = ['{Obama, Sarah Palin} is...','{Facebook, Twitter, Google} is...','{Christianity, Scientology} is...','Why are christians so...','Why are atheists so...', 'Why are buddhists so...', 'The World is...', 'Humanity is...', '{Kittens, Puppies} are...', "How do I tell my {wife, girlfriend, boyfriend}...", 'Why is {Facebook, Twitter, sex} so...', 'How {fat, ugly, stupid} is....', 'My {friend, wife, husband} is addicted to...'];
   
   function update_placeholder(){
     document.getElementsByName('query')[0].placeholder = examples[~~(examples.length*Math.random())];
@@ -65,7 +68,9 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
     location.hash = '';
     groups = [];
     roots = [];
+    document.getElementById('queries').innerHTML = '';
     document.getElementById('drawing').innerHTML = ''
+    document.getElementById('query').value = ''
   }
 
   var d = document.body.style;
@@ -77,13 +82,33 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 
 
   function add(root,cb){
-    root = root.replace(/[^\w\s]/g,'');
-    if(roots.indexOf(root) == -1){
-      addRoot(root, function(){
-        if(!cb) drawVenn(groups); else cb();
-        location.hash+='#'+encodeURIComponent(root).replace(/%20/g,'+');
-      });
+  
+    if(/\{.+\}/.test(root)){
+      var list = root.match(/\{(.+)\}/)[1].split(',');
+      var pos = 0;
+      var iter = function(){
+        if(pos < list.length){
+          var val = root.replace(/\{.+\}/, list[pos]).replace(/^\s+|\s+$/g,'').replace(/\s\s+/g,' ');
+          document.getElementById('query').value = val;
+          add(val, function(){
+            drawVenn(groups);
+            pos++;
+            setTimeout(iter, 250);
+          })
+        }
+      };
+      iter();
+    }else{
+      root = root.replace(/[^\w\s]/g,'');
+      if(root == 'reset') return doreset();
+      if(roots.indexOf(root) == -1){
+        addRoot(root, function(){
+          if(!cb) drawVenn(groups); else cb();
+          location.hash+='#'+encodeURIComponent(root).replace(/%20/g,'+');
+        });
+      }
     }
+    
   }
   //stolen from mozilla
   if (!Array.prototype.map)
@@ -176,56 +201,42 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 
 	var groups = [];
 	var roots = [];
-	//var yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fgoogle.com%2Fcomplete%2Fsearch%3Foutput%3Dtoolbar%26q%3D{text}'&format=json&diagnostics=true&callback={cbfunc}";
+
 	
-	 google={ac:{h:function(arg){
-    getSuggestion[arg[0]](arg);
-  }}};
-  
-  function getSuggestion(root, callback){
-    var s = document.createElement("script");
-    getSuggestion[root] = function(res){
-      try{
-        var nam = res[0], items = res[1].map(function(x){return x[0]});
-        callback(items.map(function(x){
-          return x.replace(/[^\w\s]/g,'')
-        }))
-      }catch(err){
-      
-        alert('Error handling query "'+root+'"');
-      }
-			if(s.parentNode) s.parentNode.removeChild(s);
-    }
-    s.src = 'http://google.com/complete/search?t=toolbar&q='+encodeURIComponent(root);
-    document.body.appendChild(s);
-  }
-	/*
 	function getSuggestion(root, callback){
 		var cbfunc = 'x'+Math.random().toString(36).substr(3);
 		var s = document.createElement("script");
 		getSuggestion[cbfunc] = function(res){
 		  try{
-			  callback(res.query.results.toplevel.CompleteSuggestion.map(function(x){
-			    //console.log(x.suggestion.data);
-			    return x.suggestion.data.replace(/[^\w\s]/g,'')
-		    }));
+			  var nam = res[0], items = res[1].map(function(x){return x[0]});
+        callback(items.map(function(x){
+          return x.replace(/[^\w\s]/g,'')
+        }))
 		  }catch(err){
 		    alert('Error handling query "'+root+'"');
 		  }
+		  getSuggestion[cbfunc] = null;
+		  delete getSuggestion[cbfunc];
 			if(s.parentNode) s.parentNode.removeChild(s);
 		}
-		s.src = yql.replace('{text}', encodeURIComponent(encodeURIComponent(root))).replace('{cbfunc}', 'getSuggestion.'+cbfunc);
+		s.src = "http://www.google.com/s?callback=getSuggestion."+cbfunc+"&q="+encodeURIComponent(root);
+
 		document.body.appendChild(s);
-	}*/
-	
+  }
+  
+  var propcache = {};
 	function getProperties(root, callback){
 	  root = root.replace(/^\s+|\s+$/g, '')+' '; //trim and add trailing space
+    if(propcache[root]){
+	    return callback(propcache[root]);
+	  }
 		getSuggestion(root, function(x){
-			callback(x.map(function(k){
+			propcache[root] = x.map(function(k){
 				return k.toLowerCase().replace(root.replace(/^\s+|\s+$/g, '').toLowerCase(), '').replace(/^\s+|\s+$/g, '').replace(/^[^a] /,'');
 			}).filter(function(x){
 					return x != '' && x.length > 1
-				}))
+			})
+			callback(propcache[root]);
 		})
 	}
 	
@@ -263,7 +274,9 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 	
 	function check_url(){
   	var uroots = unescape(location.hash).split('#').map(function(e){return unescape(e).replace(/\+/g,' ')}).filter(function(e){return e});
-  	
+  	document.getElementById('sharelink').innerHTML = shortened_url + location.hash;
+  	document.getElementById('tweetlink').href = 'http://twitter.com/?status='+encodeURIComponent(shortened_url + location.hash);
+  	document.getElementById('fbl').href = 'http://www.facebook.com/sharer.php?u='+encodeURIComponent(shortened_url + location.hash);
 	  if(uroots.length && uroots.join(',') != roots.join(',')){
 	    doreset();
 	    var racer = race(uroots.length,function(){
@@ -278,11 +291,16 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
       return false
     }
 	}
-	setInterval(check_url,500);
+	setInterval(check_url,100);
 	if(!check_url()){
-	  groups = [["stupid","judgemental","mean","hateful","ignorant","intolerant","dumb","fat","annoying","gullible"],["violent","easily offended","angry","stupid","crazy","sensitive","intolerant","hated","backward","barbaric"],["stupid","angry","awesome","intolerant","smart","mean","hateful","arrogant","annoying","rude"],["happy"]];
-	  roots = ["why are christians so", "why are muslims so", "why are atheists so", "why are buddhists so"];
-
+	  //groups = [["stupid","judgemental","mean","hateful","ignorant","intolerant","dumb","fat","annoying","gullible"],["violent","easily offended","angry","stupid","crazy","sensitive","intolerant","hated","backward","barbaric"],["stupid","angry","awesome","intolerant","smart","mean","hateful","arrogant","annoying","rude"],["happy"]];
+	  //roots = ["why are christians so", "why are muslims so", "why are atheists so", "why are buddhists so"];
+    
+    groups = [["api","tool","a site","url","labs","funny","fail","not working","site","ajax"],["math","geometry","funny","in powerpoint","for kids","problems","template","math worksheets","worksheets","logic"]];
+    
+    roots = ["google suggest","venn diagrams"];
+    
+    
     drawVenn(groups);
 	  document.getElementById("drawing").innerHTML += '<h1>EXAMPLE</h1>'
     
@@ -343,6 +361,21 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 	}
 	function drawVenn(groups){
 	  document.getElementById("drawing").innerHTML = '';
+	  document.getElementById('queries').innerHTML = '';
+
+    for(var i = 0; i < roots.length; i++){
+      var q = document.createElement('li');
+      q.innerHTML = '<a href="#'+roots.filter(function(x){
+        return x != roots[i]
+      }).map(function(x){
+        return encodeURIComponent(x).replace(/%20/g,'+')
+      }).join('#')+'">'+roots[i]+'...</a>';
+      if(roots.length == 1){
+        q.onclick = doreset;
+      }
+      document.getElementById('queries').appendChild(q);
+    }
+  
 		var names = [];
 		if(roots.length > 1){
 		  for(var i = roots.length; i--;){
@@ -414,15 +447,15 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 		}
 		var r = 50;
 		if(together.length >= 2) r += 410;
-		if(together.length >= 3) r+= 210;
+		if(together.length >= 3) r+= 150;
 		for(var i = alone.length; i--;){
 			if(((alone.length-i) % 2)){
-				drawCircle(names[alone[i]], 10, r, 200)
-				drawText(10+20,r+50,groups[alone[i]].join('<br>'))
+				drawCircle(names[alone[i]], 10, r, 250)
+				drawText(10+50,r+60,groups[alone[i]].join('<br>'))
 			}else{
-				drawCircle(names[alone[i]], 400, r, 200);
-				drawText(400+20,r+50,groups[alone[i]].join('<br>'))
-				r+= 210;
+				drawCircle(names[alone[i]], 350, r, 250);
+				drawText(350+50,r+60,groups[alone[i]].join('<br>'))
+				r+= 260;
 			}
 		}
 	}
@@ -432,11 +465,8 @@ A similar app is the <a href="http://www.technomancy.org/google-suggest-venn/">G
 		var div = document.createElement('div');
 		div.style.border = '1px solid black';
 		div.style.textAlign = "center";
-		div.innerHTML = "<h2 style='color:darkblue'>"+t+"</h2>";
-		//
+		div.innerHTML = "<h2 style='padding-top: "+(4000/w)+"px;color:darkblue'>"+t+"</h2>";
 		var r = Math.floor(w/2) + 'px';
-		//
-		//t.style.textAlign = 'center';
 		div.style.opacity = '0.5';
 		//random light-ish color
 		div.style.backgroundColor = '#'+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2);
