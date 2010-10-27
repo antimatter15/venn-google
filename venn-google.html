@@ -11,13 +11,17 @@
   #queries a{
     color: #C93244 !important;
   }
+  
+  
+  
 </style>
 <title>Google Suggest Venn Diagrams</title>
 <meta charset='utf8'>
 </head>
 <body>
+<div id="circles" style="position:absolute;padding:0;margin:0;border:0;top:0;left:0;z-index:-1;overflow:hidden"></div>
 <form onsubmit="add(this.query.value);return false">
-<input type="text" name="query" id="query" style="width: 450px;font-size: large">
+<input type="text" name="query" id="query" style="width: 450px;font-size: large" onblur='qfocused=false' onfocus='qfocused=true'>
 <input type="submit" value="Add" style="font-size:large">
 <input type="button" value="Reset" style="font-size:large" onclick="doreset()">
 </form>
@@ -35,10 +39,7 @@ Type something into the text box and press "Add" to create a new circle.
 <p>
 This was first released Sunday, October 24th, inspired by <a href="http://twitter.com/#!/nslater/status/28032249186">this tweet</a>. Please follow <a href="http://twitter.com/antimatter15">@antimatter15</a> on twitter. At time of writing I'm fifteen, though I don't find that much of an accomplishment. My site is at <a href="http://antimatter15.com">antimatter15.com</a> and hopefully you'll find some other cool stuff there too. Recently I've created a system for <a href="http://antimatter15.github.com/weppy/demo.html">viewing WebP images</a> in modern browsers, a webapp that resembles the <a href="http://antimatter15.com/ajaxanimator/wave/">Flash IDE</a> and *many* more.
 </p>
-<h2>Technical</h2>
-<p>
-The google suggest data is now acquired directly from Google with JSONP. The Venn-Diagram implementation is utterly crap, but the circles are drawn using border-radius.
-</p>
+
 <strong>Share</strong> <a href="#tweet" id="tweetlink">Twitter</a> <a href='#fb' id="fbl">Facebook</a>
 <p>
 <span id="sharelink" style="font-family:monospace;word-wrap:break-word">http://goo.gl/6kjP</span>
@@ -53,13 +54,49 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 </div>
 <div id="warning" style="background-color: orange; font-size: xx-large;display:none">Your browser isn't supported!</div>
 <div id="drawing"></div>
+<script src="es5.js"></script>
+<script src="raphael-min.js"></script> <!-- epic waste of raphael's power-->
 <script>
   var shortened_url = 'http://goo.gl/6kjP';
 
-  var examples = ['{Obama, Sarah Palin} is...','{Facebook, Twitter, Google} is...','{Christianity, Scientology} is...','Why are christians so...','Why are atheists so...', 'Why are buddhists so...', 'The World is...', 'Humanity is...', '{Kittens, Puppies} are...', "How do I tell my {wife, girlfriend, boyfriend}...", 'Why is {Facebook, Twitter, sex} so...', 'How {fat, ugly, stupid} is....', 'My {friend, wife, husband} is addicted to...'];
+  var examples = ['{Obama, Sarah Palin} is...','{Facebook, Twitter, Google} is...','{Christianity, Scientology} is...','Why are christians so...','Why are atheists so...', 'Why are buddhists so...', '{Kittens, Puppies} are...', "How do I tell my {wife, girlfriend, boyfriend}...", 'Why is {Facebook, Twitter} so...', 'How {fat, ugly, stupid} is....', 'My {friend, wife, husband} is addicted to...', 'Why is {C, PHP, Java} so...', 'Why are {Chinese, Korean, Japanese} so...', 'Why is {America, Canada, Europe}...'];
+  
+  var ta = document.createElement('input');
+  var qfocused = false;
+  
+	var blocks = {};
+  var paper = Raphael("circles", 100, 100);
+  
+  function doresize(){
+    document.getElementById('circles').style.height = '100px';
+    paper.setSize(innerWidth, getDocHeight()+100);
+    document.getElementById('circles').style.width = (innerWidth-100) + 'px';
+    document.getElementById('circles').style.height = (getDocHeight()+100) + 'px';
+  }
+  
+  onresize = doresize;
+  
+  doresize();
+  
+  //stolen from http://james.padolsey.com/javascript/get-document-height-cross-browser/
+  function getDocHeight() {
+    var D = document;
+    return Math.max(
+        Math.max(D.body.scrollHeight, D.documentElement.scrollHeight),
+        Math.max(D.body.offsetHeight, D.documentElement.offsetHeight),
+        Math.max(D.body.clientHeight, D.documentElement.clientHeight)
+    );
+  }
   
   function update_placeholder(){
-    document.getElementsByName('query')[0].placeholder = examples[~~(examples.length*Math.random())];
+    var q = document.getElementById('query');
+    var ex = examples[~~(examples.length*Math.random())];;
+    
+    if(ta.placeholder != undefined){
+      q.placeholder = ex;
+    }else if(qfocused == false){
+      q.value = ex
+    }
   }
   update_placeholder();
   setInterval(update_placeholder,2500);
@@ -68,6 +105,8 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
     location.hash = '';
     groups = [];
     roots = [];
+    paper.clear();
+    blocks = {};
     document.getElementById('queries').innerHTML = '';
     document.getElementById('drawing').innerHTML = ''
     document.getElementById('query').value = ''
@@ -93,7 +132,7 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
           add(val, function(){
             drawVenn(groups);
             pos++;
-            setTimeout(iter, 250);
+            setTimeout(iter, 500);
           })
         }
       };
@@ -110,94 +149,7 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
     }
     
   }
-  //stolen from mozilla
-  if (!Array.prototype.map)
-  {
-    Array.prototype.map = function(fun /*, thisp */)
-    {
-      //DO NOT USE STRICT. HA HA.
-      if (this === void 0 || this === null)
-        throw new TypeError();
-      var t = Object(this);
-      var len = t.length >>> 0;
-      if (typeof fun !== "function")
-        throw new TypeError();
-      var res = new Array(len);
-      var thisp = arguments[1];
-      for (var i = 0; i < len; i++)
-      {
-        if (i in t)
-          res[i] = fun.call(thisp, t[i], i, t);
-      }
-      return res;
-    };
-  }
-  if (!Array.prototype.filter)  
-  {  
-    Array.prototype.filter = function(fun /*, thisp */)  
-    {  
-      //seriously what's with mozilla's strictness?
-      if (this === void 0 || this === null)  
-        throw new TypeError();  
-    
-      var t = Object(this);  
-      var len = t.length >>> 0;  
-      if (typeof fun !== "function")  
-        throw new TypeError();  
-    
-      var res = [];  
-      var thisp = arguments[1];  
-      for (var i = 0; i < len; i++)  
-      {  
-        if (i in t)  
-        {  
-          var val = t[i]; // in case fun mutates this  
-          if (fun.call(thisp, val, i, t))  
-            res.push(val);  
-        }  
-      }  
-    
-      return res;  
-    };  
-  }  
-  if (!Array.prototype.indexOf)  
-  {  
-    Array.prototype.indexOf = function(searchElement /*, fromIndex */)  
-    {  
-      //i love stealing code from mozilla
-      if (this === void 0 || this === null)  
-        throw new TypeError();  
-    
-      var t = Object(this);  
-      var len = t.length >>> 0;  
-      if (len === 0)  
-        return -1;  
-    
-      var n = 0;  
-      if (arguments.length > 0)  
-      {  
-        n = Number(arguments[1]);  
-        if (n !== n)  
-          n = 0;  
-        else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0))  
-          n = (n > 0 || -1) * Math.floor(Math.abs(n));  
-      }  
-    
-      if (n >= len)  
-        return -1;  
-    
-      var k = n >= 0  
-            ? n  
-            : Math.max(len - Math.abs(n), 0);  
-    
-      for (; k < len; k++)  
-      {  
-        if (k in t && t[k] === searchElement)  
-          return k;  
-      }  
-      return -1;  
-    };  
-  }  
+
 
 	var groups = [];
 	var roots = [];
@@ -271,10 +223,14 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 		}
 	}
 	
+	var lastText = '';
 	
 	function check_url(){
   	var uroots = unescape(location.hash).split('#').map(function(e){return unescape(e).replace(/\+/g,' ')}).filter(function(e){return e});
-  	document.getElementById('sharelink').innerHTML = shortened_url + location.hash;
+  	var surl = shortened_url + location.hash;
+    if(lastText != surl){
+  	  document.getElementById('sharelink').innerHTML = lastText = surl;
+  	}
   	document.getElementById('tweetlink').href = 'http://twitter.com/?status='+encodeURIComponent(shortened_url + location.hash);
   	document.getElementById('fbl').href = 'http://www.facebook.com/sharer.php?u='+encodeURIComponent(shortened_url + location.hash);
 	  if(uroots.length && uroots.join(',') != roots.join(',')){
@@ -292,21 +248,7 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
     }
 	}
 	setInterval(check_url,100);
-	if(!check_url()){
-	  //groups = [["stupid","judgemental","mean","hateful","ignorant","intolerant","dumb","fat","annoying","gullible"],["violent","easily offended","angry","stupid","crazy","sensitive","intolerant","hated","backward","barbaric"],["stupid","angry","awesome","intolerant","smart","mean","hateful","arrogant","annoying","rude"],["happy"]];
-	  //roots = ["why are christians so", "why are muslims so", "why are atheists so", "why are buddhists so"];
-    
-    groups = [["api","tool","a site","url","labs","funny","fail","not working","site","ajax"],["math","geometry","funny","in powerpoint","for kids","problems","template","math worksheets","worksheets","logic"]];
-    
-    roots = ["google suggest","venn diagrams"];
-    
-    
-    drawVenn(groups);
-	  document.getElementById("drawing").innerHTML += '<h1>EXAMPLE</h1>'
-    
-    groups = [];
-    roots = [];
-	}
+
 
 	
 	function intersect(g1, g2){
@@ -362,7 +304,13 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 	function drawVenn(groups){
 	  document.getElementById("drawing").innerHTML = '';
 	  document.getElementById('queries').innerHTML = '';
-
+    
+    for(var i in blocks){
+      if(roots.indexOf(i) == -1){
+        blocks[i].remove();
+        delete blocks[i]
+      }
+    }
     for(var i = 0; i < roots.length; i++){
       var q = document.createElement('li');
       q.innerHTML = '<a href="#'+roots.filter(function(x){
@@ -375,6 +323,7 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
       }
       document.getElementById('queries').appendChild(q);
     }
+    
   
 		var names = [];
 		if(roots.length > 1){
@@ -408,16 +357,16 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 			//since one thing together would be equivalent to 
 			//one thing alone. right?
 		}else if(together.length == 2){
-			drawCircle(names[together[0]],10,50,400);
+			drawCircle(roots[together[0]], names[together[0]],10,50,400);
 			var is = intersect(groups[together[0]], groups[together[1]]);
 
 			
 			drawText(70,120,is[0].join('<br>'))
 			drawText(250,120,is[1].join('<br>'))
-			drawCircle(names[together[1]],180,50,400)
+			drawCircle(roots[together[1]], names[together[1]],180,50,400)
 			drawText(420,120,is[2].join('<br>'))
 		}else{ //3+, because for 4+ only draw first 3
- 			drawCircle(names[together[0]],10,50,400);
+ 			drawCircle(roots[together[0]], names[together[0]],10,50,400);
 
 			var am = intersect(groups[together[0]], groups[together[1]]);
 			var center = intersect(am[1], groups[together[2]])[1];
@@ -438,11 +387,14 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 			drawText(90,120,ao.join('<br>')) //1-only
 			drawText(250,120,amo.join('<br>')) //1 -and- 2 only
 			drawText(420,120,mo.join('<br>'))
-			drawCircle(names[together[1]],180,50,400)
+			drawCircle(roots[together[1]], names[together[1]],180,50,400)
+			
 			drawText(220,270,center.join('<br>'))
 			drawText(120,310,aco.join('<br>'))
 			drawText(400,310,mco.join('<br>'))
-			drawCircle(names[together[2]],90,220,400)
+			
+			drawCircle(roots[together[2]], names[together[2]],90,220,400)
+			
 			drawText(170,470,co.join('<br>'))
 		}
 		var r = 50;
@@ -450,39 +402,57 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 		if(together.length >= 3) r+= 150;
 		for(var i = alone.length; i--;){
 			if(((alone.length-i) % 2)){
-				drawCircle(names[alone[i]], 10, r, 250)
+				drawCircle(roots[alone[i]], names[alone[i]], 10, r, 250)
 				drawText(10+50,r+60,groups[alone[i]].join('<br>'))
 			}else{
-				drawCircle(names[alone[i]], 350, r, 250);
+				drawCircle(roots[alone[i]], names[alone[i]], 350, r, 250);
 				drawText(350+50,r+60,groups[alone[i]].join('<br>'))
 				r+= 260;
 			}
 		}
+		
+		doresize();
 	}
 	
+	function drawCircle(o,t,x,y,w){
+	  if(blocks[o]){
+	    var set = blocks[o];
+	    set[0].attr({
+	      text: t
+	    }).animate({
+	      x: x + w/2,
+	      y: y + 15
+	    },1000)
+	    var c = set[1];
+	    c.animate({
+	      cx: x + w/2,
+	      cy: y + w/2,
+	      r: w/2
+	    },1000)
+	  }else{
+	    var set = paper.set();
 	
-	function drawCircle(t,x,y,w){
-		var div = document.createElement('div');
-		div.style.border = '1px solid black';
-		div.style.textAlign = "center";
-		div.innerHTML = "<h2 style='padding-top: "+(4000/w)+"px;color:darkblue'>"+t+"</h2>";
-		var r = Math.floor(w/2) + 'px';
-		div.style.opacity = '0.5';
-		//random light-ish color
-		div.style.backgroundColor = '#'+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2)+(1-Math.random()/3).toString(16).substr(2,2);
-		div.style.borderRadius = r;
-		div.style.WebkitBorderRadius = r;
-		div.style.MozBorderRadius = r;
-		div.style.position = 'absolute';
-		div.style.top = y+'px';
-		div.style.left = x+'px';
-		div.style.width = w+'px';
-		div.style.height = w+'px';
-		
-		//div.appendChild(t)
-		document.getElementById("drawing").appendChild(div);
-		
-		return div
+	    set.push(paper.text(x + w/2, y + 15, t).attr({
+	      fill: '#00008B',
+	      'font-weight': 'bold',
+	      opacity: 0
+	    }).animate({
+        opacity: 1
+      },1000));
+	    
+    	var c = paper.circle(x + w/2, y + w/2, w/2)
+    	  .attr({
+    	          opacity: 0,
+    	          fill: 'hsb('+Math.random()+','+(0.5 * Math.random())+','+(1 - Math.random() * 0.2)+')'
+    	        }).toBack().animate({
+    	          opacity: 0.2
+    	        },1000);
+      set.push(c);
+      
+      
+      
+      blocks[o] = set;
+    }
 	}
 	function drawText(x,y,text){
 		var t = document.createElement('div')
@@ -491,10 +461,34 @@ The google suggest data is now acquired directly from Google with JSONP. The Ven
 		t.style.zIndex = 2;
 		t.style.position = 'absolute';
 		t.style.left = x+'px';
-		document.getElementById("drawing").appendChild(t)
+		document.getElementById("drawing").appendChild(t);
+		var o = 0;
+    ;(function(){
+      if(o < 1){
+        o += 0.2;
+        t.style.opacity = o;
+        setTimeout(arguments.callee, 100);
+      }
+    })();
 	}
 	
 	
+	
+	if(!check_url()){
+	  //groups = [["stupid","judgemental","mean","hateful","ignorant","intolerant","dumb","fat","annoying","gullible"],["violent","easily offended","angry","stupid","crazy","sensitive","intolerant","hated","backward","barbaric"],["stupid","angry","awesome","intolerant","smart","mean","hateful","arrogant","annoying","rude"],["happy"]];
+	  //roots = ["why are christians so", "why are muslims so", "why are atheists so", "why are buddhists so"];
+    
+    groups = [["api","tool","a site","url","labs","funny","fail","not working","site","ajax"],["math","geometry","funny","in powerpoint","for kids","problems","template","math worksheets","worksheets","logic"]];
+    
+    roots = ["google suggest","venn diagrams"];
+    
+    
+    drawVenn(groups);
+    
+    groups = [];
+    roots = [];
+    
+	}
 </script>
 <script type="text/javascript">
 
