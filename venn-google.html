@@ -52,7 +52,6 @@ This was first released Sunday, October 24th, inspired by <a href="http://twitte
 </div>
 
 </div>
-<div id="warning" style="background-color: orange; font-size: xx-large;display:none">Your browser isn't supported!</div>
 <div id="drawing"></div>
 <script src="es5.js"></script>
 <script src="raphael-min.js"></script> <!-- epic waste of raphael's power-->
@@ -66,6 +65,7 @@ This was first released Sunday, October 24th, inspired by <a href="http://twitte
   
 	var blocks = {};
   var paper = Raphael("circles", 100, 100);
+  if(!window.innerWidth) innerWidth = document.documentElement.clientWidth;
   
   function doresize(){
     document.getElementById('circles').style.height = '100px';
@@ -112,12 +112,6 @@ This was first released Sunday, October 24th, inspired by <a href="http://twitte
     document.getElementById('query').value = ''
   }
 
-  var d = document.body.style;
-  if((d.WebkitBorderRadus !== undefined || d.borderRadius !== undefined || d.MozBorderRadius !== undefined)/* && [].map && [].filter*/){
-    //yay
-  }else{
-    document.getElementById('warning').style.display = '';
-  }
 
 
   function add(root,cb){
